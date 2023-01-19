@@ -1,67 +1,10 @@
-const http = require("http");
-const fs = require("fs");
+const express = require('express') // express is a listener function
 
-const server = http.createServer((req, res) => {
-    // this listener function handle all incoming requests
-    console.log(req.url, req.method, req.headers);
-    // you can base on url, method to response differently
-    if (req.url === "/") {
-        res.write(`
-        <html>
-            <head>
-                <title>Enter Message</title>
-            </head>
-            <body>
-                <form action="/message" method="POST" >
-                    <input type='text' name="message" > 
-                    <button type="submit">Send</button>
-                </form>
-            </body>
-        </html>
-        `);
-        // for the form data, name attribute of <input> is the key of the key/value pair
-        return res.end(); // res.end() send response to the client
-    }
+const app = express()  // expressJS os all about the middleware
 
-    // parse incoming POST request
-    if (req.url === "/message" && req.method === "POST") {
-        // res.on() listen to a certain event
-        const dataChunks = [];
-        res.on("data", (chunk) => {
-            // 'data' event is fire whenever a new chunk is ready to be read
-            console.log("chunk", chunk);
-            dataChunks.push(chunk);
-        });
+app.use((req, res, next) => {
 
-        return res.on("end", () => {
-            // 'end' event is fired once the parsing the incoming requests data is done
-            const parsedBody = Buffer.concat(dataChunks).toString();
-            console.log(parsedBody); // output: message="blabla.."
-            const data = parsedBody.split("=")[1];
-            fs.writeFile("message.txt", data, (err) => {
-                if (!err) {
-                    res.statusCode = 302;
-                    res.setHeader("Location", "/");
-                    return res.end();
-                }
-            });
-        });
-    }
+    res.send('<h1>Hello from Express !</h1>')
+}); 
 
-    // process.exit();  // this close the server
-    res.setHeader("Content-Type", "text/html");
-    res.write(`
-    <html>
-        <head>
-            <title>My First Page</title>
-        </head>
-        <body>
-            <h2>Hello from Node.js Server!</h2>
-        </body>
-    </html>`);
-    res.end(); // no res.write() after res.end()
-});
-
-server.listen(3000, () => {
-    console.log("server is up on port 3000");
-});
+app.listen(3000)
